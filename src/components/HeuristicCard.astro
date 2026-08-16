@@ -1,19 +1,21 @@
 ---
 interface Props {
   number: number;
+  category: string;
   title: string;
   description: string;
-  example: string;
+  friction: string;
+  goodPractice: string;
 }
 
-const { number, title, description, example } = Astro.props;
+const { number, category, title, description, friction, goodPractice } = Astro.props;
 const label = String(number).padStart(2, '0');
 ---
 
 <article class="card">
-  <p class="number" aria-hidden="true">{label}</p>
-  <h2>{title}</h2>
+  <div class="card-meta"><span class="number" aria-hidden="true">{label}</span><span class="category">{category}</span></div>
+  <h3>{title}</h3>
   <p class="description">{description}</p>
-  <p class="example"><strong>Na prática:</strong> {example}</p>
+  <div class="comparison"><p class="friction"><strong><span aria-hidden="true">×</span> Fricção</strong>{friction}</p><p class="good-practice"><strong><span aria-hidden="true">✓</span> Boa prática</strong>{goodPractice}</p></div>
 </article>
 
