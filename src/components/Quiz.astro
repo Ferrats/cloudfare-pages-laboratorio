@@ -1,0 +1,72 @@
+---
+const questions = [
+  { question: 'Você toca em “Salvar”. Nada muda na tela e não sabe se funcionou. Qual princípio falhou?', answers: ['Consistência e padrões', 'Visibilidade do status', 'Ajuda e documentação'], correct: 1, explanation: 'Sem confirmação ou progresso, o sistema deixa a pessoa no escuro.' },
+  { question: 'Um formulário apaga tudo depois que um único campo é preenchido errado. Qual princípio é mais afetado?', answers: ['Controle e liberdade', 'Design minimalista', 'Correspondência com o mundo real'], correct: 0, explanation: 'Preservar os dados e permitir correção mantém a pessoa no controle.' },
+  { question: 'O sistema pede o nome exato de um arquivo visto na tela anterior. O que faltou?', answers: ['Prevenção de erros', 'Reconhecimento em vez de memorização', 'Flexibilidade de uso'], correct: 1, explanation: 'Mostrar opções ou o arquivo recente elimina o esforço de memória.' },
+];
+---
+<section class="lab" id="pratica" aria-labelledby="lab-title">
+  <div class="lab-inner">
+    <div class="lab-header"><h2 id="lab-title">Agora é com você.</h2><p>Leia a situação, escolha a heurística mais afetada e veja se seu olhar de produto está calibrado.</p></div>
+    <div class="quiz" data-quiz data-questions={JSON.stringify(questions)}>
+      <div><p class="quiz-meta" data-quiz-meta>Situação 01 de 03</p><div class="quiz-progress" aria-hidden="true"><span data-progress></span></div></div>
+      <div class="quiz-content"><h3 data-question>{questions[0].question}</h3><div class="answers" data-answers aria-label="Escolha uma resposta"></div><p class="feedback" data-feedback aria-live="polite"></p><button class="button button-primary next-button" type="button" data-next>Próxima situação →</button></div>
+    </div>
+  </div>
+</section>
+<script>
+  type Question = { question: string; answers: string[]; correct: number; explanation: string };
+  document.querySelectorAll<HTMLElement>('[data-quiz]').forEach((quiz) => {
+    const questions = JSON.parse(quiz.dataset.questions ?? '[]') as Question[];
+    const question = quiz.querySelector<HTMLElement>('[data-question]');
+    const answers = quiz.querySelector<HTMLElement>('[data-answers]');
+    const feedback = quiz.querySelector<HTMLElement>('[data-feedback]');
+    const next = quiz.querySelector<HTMLButtonElement>('[data-next]');
+    const meta = quiz.querySelector<HTMLElement>('[data-quiz-meta]');
+    const progress = quiz.querySelector<HTMLElement>('[data-progress]');
+    let current = 0;
+    let locked = false;
+    if (!question || !answers || !feedback || !next || !meta || !progress) return;
+    const choose = (button: HTMLButtonElement, answerIndex: number) => {
+      if (locked) return;
+      locked = true;
+      const item = questions[current];
+      const isCorrect = answerIndex === item.correct;
+      button.classList.add(isCorrect ? 'correct' : 'wrong');
+      button.setAttribute('aria-pressed', 'true');
+      answers.querySelectorAll<HTMLButtonElement>('button').forEach((itemButton, index) => {
+        itemButton.disabled = true;
+        if (index === item.correct) itemButton.classList.add('correct');
+      });
+      feedback.textContent = `${isCorrect ? 'Acertou.' : 'Quase.'} ${item.explanation}`;
+      next.textContent = current === questions.length - 1 ? 'Refazer desafio ↻' : 'Próxima situação →';
+      next.classList.add('show');
+      next.focus();
+    };
+    const render = () => {
+      locked = false;
+      const item = questions[current];
+      question.textContent = item.question;
+      meta.textContent = `Situação ${String(current + 1).padStart(2, '0')} de ${String(questions.length).padStart(2, '0')}`;
+      progress.style.width = `${((current + 1) / questions.length) * 100}%`;
+      feedback.textContent = '';
+      next.classList.remove('show');
+      answers.replaceChildren();
+      item.answers.forEach((answer, index) => {
+        const button = document.createElement('button');
+        button.type = 'button';
+        button.className = 'answer';
+        button.textContent = answer;
+        button.setAttribute('aria-pressed', 'false');
+        button.addEventListener('click', () => choose(button, index));
+        answers.append(button);
+      });
+    };
+    next.addEventListener('click', () => {
+      current = current === questions.length - 1 ? 0 : current + 1;
+      render();
+      answers.querySelector<HTMLButtonElement>('button')?.focus();
+    });
+    render();
+  });
+</script>
